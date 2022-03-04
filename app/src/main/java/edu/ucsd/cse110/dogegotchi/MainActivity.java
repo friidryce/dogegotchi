@@ -81,6 +81,9 @@ public class MainActivity extends Activity {
         ticker.register(gameView);
         this.dayNightCycleMediator.register(gameView);
 
+        //My code
+        this.dayNightCycleMediator.register(this.doge);
+
         /**
          * TODO: Exercise 2 -- MVP
          *
@@ -94,11 +97,17 @@ public class MainActivity extends Activity {
          *
          *      3. Feed doge and update their state accordingly.
          */
+        //Starter code but I don't think this is even needed
+        /*
         final View foodMenu = this.findViewById(R.id.FoodMenuView);
         final ImageButton hamButton       = foodMenu.findViewById(R.id.HamButton),
                           steakButton     = foodMenu.findViewById(R.id.SteakButton),
                           turkeyLegButton = foodMenu.findViewById(R.id.TurkeyLegButton);
+         */
+
         // hm... should prob do something with this
+        Presenter presenter = new Presenter(this.doge, this);
+
 
         /**
          * TODO: Exercise 3 -- Strategy & Factory
@@ -170,6 +179,12 @@ public class MainActivity extends Activity {
                                   getResources().getInteger(R.integer.happy_y)));
 
         // TODO: Exercise 1 - set up sprite and coords for SAD state.
+        stateBitmaps.put(Doge.State.SAD,
+                BitmapFactory.decodeResource(getResources(), R.drawable.sad_2x));
+        stateCoords.put(Doge.State.SAD,
+                new Coord(getResources().getInteger(R.integer.sad_x),
+                        getResources().getInteger(R.integer.sad_y)));
+
         stateBitmaps.put(Doge.State.SLEEPING,
                          BitmapFactory.decodeResource(getResources(), R.drawable.sleeping_2x));
         stateCoords.put(Doge.State.SLEEPING,
@@ -177,6 +192,12 @@ public class MainActivity extends Activity {
                                   getResources().getInteger(R.integer.sleeping_y)));
 
         // TODO: Exercise 2 - Set up sprite and coords for EATING state.
+        stateBitmaps.put(Doge.State.EATING,
+                BitmapFactory.decodeResource(getResources(), R.drawable.eating_2x));
+        stateCoords.put(Doge.State.EATING,
+                new Coord(getResources().getInteger(R.integer.eating_x),
+                        getResources().getInteger(R.integer.eating_y)));
+
         // TODO: Exercise 3 - You may need to create the Factory of Strategies here
         this.dogeView = new DogeView(this, Doge.State.HAPPY, stateBitmaps, stateCoords);
 

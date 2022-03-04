@@ -7,6 +7,7 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import edu.ucsd.cse110.dogegotchi.daynightcycle.IDayNightCycleObserver;
 import edu.ucsd.cse110.dogegotchi.observer.ISubject;
 import edu.ucsd.cse110.dogegotchi.ticker.ITickerObserver;
 
@@ -17,11 +18,26 @@ import edu.ucsd.cse110.dogegotchi.ticker.ITickerObserver;
  *
  * TODO: Exercise 2 -- enable {@link State#SAD} mood, and add support for {@link State#EATING} behavior.
  */
-public class Doge implements ISubject<IDogeObserver>, ITickerObserver {
+public class Doge implements ISubject<IDogeObserver>, ITickerObserver, IDayNightCycleObserver {
     /**
      * Current number of ticks. Reset after every potential mood swing.
      */
     int numTicks;
+
+    /**
+     * Current number of ticks for eating. Reset after eating.
+     */
+    int eatTicks;
+
+    /**
+     * Current period in the game (shouldn't have to be stored here)
+     */
+    Period currentPeriod;
+
+    /**
+     * Desired duration of eating
+     */
+    final int eatDuration = 5;
 
     /**
      * How many ticks before we toss a multi-sided die to check mood swing.
@@ -52,6 +68,8 @@ public class Doge implements ISubject<IDogeObserver>, ITickerObserver {
                 "Mood swing probability must be in range [0,1).");
 
         this.numTicks = 0;
+        this.eatTicks = 0;
+        this.currentPeriod = Period.DAY;
         this.numTicksBeforeMoodSwing = numTicksBeforeMoodSwing;
         this.moodSwingProbability = moodSwingProbability;
         this.state = State.HAPPY;
@@ -65,11 +83,22 @@ public class Doge implements ISubject<IDogeObserver>, ITickerObserver {
     @Override
     public void onTick() {
         this.numTicks++;
+        if(this.state == State.EATING)
+            this.eatTicks++;
 
         if (this.numTicks > 0
             && (this.numTicks % this.numTicksBeforeMoodSwing) == 0) {
             tryRandomMoodSwing();
             this.numTicks = 0;
+        }
+
+        if(this.eatTicks == eatDuration) {
+            setState(State.HAPPY);
+            this.eatTicks = 0;
+        }
+
+        if(currentPeriod == Period.NIGHT && this.state == State.HAPPY) {
+            setState(State.SLEEPING);
         }
     }
 
@@ -80,6 +109,10 @@ public class Doge implements ISubject<IDogeObserver>, ITickerObserver {
      */
     private void tryRandomMoodSwing() {
         // TODO: Exercise 1 -- Implement this method...
+        if(this.state == State.HAPPY) {
+            if(Math.random() < moodSwingProbability)
+                setState(State.SAD);
+        }
     }
 
     @Override
@@ -116,5 +149,20 @@ public class Doge implements ISubject<IDogeObserver>, ITickerObserver {
         // TODO: Implement asleep and eating states, and transitions between all states.
         SLEEPING,
         EATING;
+    }
+
+    public void onPeriodChange(Period newPeriod) {
+        if(newPeriod.equals(Period.NIGHT) && this.state != State.EATING) {
+            setState(State.SLEEPING);
+            this.currentPeriod = Period.NIGHT;
+        }
+        else if(newPeriod.equals(Period.DAY)) {
+            setState(State.HAPPY); //doge should be happy if period changes to day
+            this.currentPeriod = Period.DAY;
+        }
+    }
+
+    public void eat() {
+        setState(State.EATING);
     }
 }
